@@ -1,0 +1,279 @@
+import random, time, os, sqlite_manager, datetime
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait as wait
+from selenium.webdriver import FirefoxOptions
+from selenium.webdriver.common.proxy import Proxy, ProxyType
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from bs4 import BeautifulSoup
+from threading import Thread
+
+colors = {
+	"red": "\033[31m",
+	"green": "\33[92m",
+	"red_highlight": "\33[101m",
+	"yellow": "\33[33m",
+	"endcol": '\033[0m'
+}
+
+class DeviantBot(Thread):
+
+	def __init__(self, creds):
+
+		if(len(creds) < 3):
+
+			die('Not Enough Credential Values')
+
+		super(DeviantBot, self).__init__() # Keep Thread constructor
+		self.bot_profile = webdriver.FirefoxProfile()
+		self.bot_browser_opts = webdriver.FirefoxOptions()
+		#self.bot_browser_opts.add_argument('--headless')
+		self.bot_browser = webdriver.Firefox()
+		self.credentials = creds
+		self.print_log_message('Starting Bot')
+		self.deviant_main = "https://www.deviantart.com/"
+		self.deviant_join = "https://www.deviantart.com/join/"
+		self.deviant_login = "https://www.deviantart.com/users/login"
+		self.deviant_note = "https://www.deviantart.com/notifications/notes/#1_0"
+		self.deviant_forum = "https://forum.deviantart.com/community/projects/"
+		self.whatsip = "http://whatismyip.host/"
+		dbpath = ('databases/%s_database.db' % (self.credentials[0]))
+		self.bot_database = sqlite_manager.SqliteDatabase(dbpath)
+		self.generate_bot_database()
+
+	def generate_bot_database(self):
+
+		self.bot_database.create_table('messages',
+			[
+				['primaryID', 'INTEGER PRIMARY KEY'],
+				['to_uname', 'TEXT'],
+				['from_uname', 'TEXT'],
+				['date', 'smalldatetime'],
+				['content', 'TEXT'],
+				['mode', 'INTEGER']
+			]
+		)
+
+		self.bot_database.create_table('forums_made',
+			[
+				['primaryID', 'INTEGER PRIMARY KEY'],
+				['forum_name', 'TEXT'],
+				['forum_content', 'TEXT'],
+				['forum_link', 'TEXT'],
+				['forum_created', 'smalldatetime'],
+				['forum_genre', 'TEXT']
+			]
+		)
+
+		self.bot_database.create_table('profile_data',
+			[
+				['profile_pic_link', 'TEXT'],
+				['profile_bio', 'TEXT'],
+				['profile_bday', 'date'],
+				['profile_uname', 'TEXT'],
+				['profile_password', 'TEXT']
+			]
+		)
+
+
+	def register(self):
+
+		self.bot_browser.get(self.deviant_join)
+		register_page_text = self.bot_browser.page_source
+		register_page_soup = BeautifulSoup(register_page_text, 'html.parser')
+		register_page_form = self.bot_browser.find_element_by_id('form1')
+
+		register_page_cusername = self.bot_browser.find_element_by_id('cusername')
+		register_page_email1 = self.bot_browser.find_element_by_id('email1')
+		register_page_email2 = self.bot_browser.find_element_by_id('email2')
+		register_page_password = self.bot_browser.find_element_by_id('password1')
+		register_page_dobmonth = self.bot_browser.find_element_by_id('dobmonth')
+		register_page_dobday = self.bot_browser.find_element_by_id('dobday')
+		register_page_dobyear = self.bot_browser.find_element_by_id('dobyear')
+		register_page_gender = self.bot_browser.find_element_by_id('gender')
+		register_page_agree = self.bot_browser.find_element_by_id('agreeterms')
+
+		determine_option = lambda opt, ind, num: opt.click() if ind == num else None
+		choose_option = lambda elem, num: [determine_option(optaion, ind, num) for ind, option in enumerate(elem('option'))]
+
+		register_page_cusername.send_keys(self.credentials[0])
+		register_page_email1.send_keys(self.credentials[1])
+		register_page_email2.send_keys(self.credentials[1])
+		register_page_password.send_keys(self.credentials[2])
+
+		choose_option(register_page_dobmonth.find_elements_by_tag_name, random.randint(0, 12))
+		choose_option(register_page_dobday.find_elements_by_tag_name, random.randint(0, 28))
+		choose_option(register_page_dobyear.find_elements_by_tag_name, random.randint(0, 100))
+		choose_option(register_page_gender.find_elements_by_tag_name, random.randint(0, 2))
+
+		register_page_agree.click()
+
+		# Moment of truth
+		register_page_form.submit()
+
+	def login(self):
+
+		try:
+			self.print_log_message('Navigating to %s' % (self.deviant_login))
+			self.bot_browser.get(self.deviant_login)
+
+		except Exception as e:
+			self.print_log_message('Exception Occured: %s...retrying' % (str(e)), False)
+			self.print_log_message('Navigating to %s' % (self.deviant_login))
+			self.bot_browser.get(self.deviant_login)
+
+		self.print_log_message('Trying to find element')
+		login_page_form = self.bot_browser.find_element_by_id('login')
+		login_page_title = self.bot_browser.title
+		login_page_username = self.bot_browser.find_element_by_id('login_username')
+		login_page_password = self.bot_browser.find_element_by_id('login_password')
+
+		login_page_username.send_keys(self.credentials[0])
+		login_page_password.send_keys(self.credentials[2])
+
+		login_page_form.submit()
+
+		wait(self.bot_browser, 15).until_not(EC.title_is(login_page_title))
+
+	def send_notes(self, to_name, msg):
+
+		self.bot_browser.get(self.deviant_note)
+
+		notes_page_intro = self.bot_browser.find_element_by_id('note-intro')
+		notes_page_createbtn = notes_page_intro.find_element_by_class_name('button_create')
+
+		notes_page_createbtn.click()
+
+		notes_page_form = self.bot_browser.find_element_by_xpath('//form[@data-dwait-domready="Notes.compose"]')
+		notes_page_subject = notes_page_form.find_element_by_class_name('subject')
+		notes_page_recipient_area = notes_page_form.find_element_by_id('recipient-textareas')
+		
+		notes_page_message = notes_page_form.find_element_by_id('notebody')
+		notes_page_recipient = notes_page_recipient_area.find_elements_by_tag_name('input')
+		notes_page_subject = notes_page_subject.find_element_by_xpath('//input[@class="text f"]')
+		notes_page_sendbtn = notes_page_form.find_element_by_class_name('send_note')
+
+		for input_area in notes_page_recipient:
+
+			try:
+
+				input_area.send_keys(to_name)
+
+			except:
+
+				pass
+
+		notes_page_subject.send_keys(to_name)
+		notes_page_message.send_keys(msg)
+		notes_page_sendbtn.click()
+
+		self.print_log_message('Message Sent Successfully to %s' % (to_name))
+
+		self.bot_database.insert_into('messages', [to_name, self.credentials[0], datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), msg, 0])
+
+	def create_forum(self, subject, content):
+
+		self.bot_browser.get(self.deviant_forum)
+
+		forum_page_form = self.bot_browser.find_element_by_xpath('//form[@name="postcomment"]')
+		forum_page_topic = forum_page_form.find_element_by_id('commentsubject')
+		forum_page_content = forum_page_form.find_element_by_id('commentbody')
+		forum_page_submitbtn = forum_page_form.find_element_by_xpath('//a[@class="smbutton smbutton-big smbutton-green submit"]')
+		forum_page_ccwriter = forum_page_form.find_element_by_class_name('ccwriter-content')
+
+		forum_page_contentwriter = forum_page_ccwriter.find_element_by_xpath('//div[@class="writer selectable no-lub put-art-here ui-droppable empty"]')
+
+		self.print_log_message('Found Element: %s' % (forum_page_contentwriter))
+
+		print(forum_page_submitbtn.get_attribute('outerHTML'))
+
+		self.bot_browser.execute_script("arguments[0].style.display = 'block';", forum_page_content)
+
+		forum_page_topic.send_keys(subject)
+		forum_page_contentwriter.send_keys(content)
+
+		# Moment of truth
+		forum_page_submitbtn.click()
+
+		self.print_log_message('Forum %s created Successfully!' % (subject))
+
+
+	def update_proxy(self):
+
+		# Here is where we update and change the bot's proxy
+		self.proxy_list = open('proxy_list', 'r')
+		self.proxy_matrix = []
+
+		for proxy in self.proxy_list:
+
+			self.proxy_matrix.append(proxy.split(':'))
+
+		selected_proxy = self.proxy_matrix[random.randint(0, len(self.proxy_matrix) - 1)]
+
+		self.bot_profile.set_preference('network.proxy.type', 1)
+		self.bot_profile.set_preference('network.proxy.http', selected_proxy[0])
+		self.bot_profile.set_preference('network.proxy.http_port', int(selected_proxy[1]))
+		self.bot_profile.set_preference('network.proxy.ssl', selected_proxy[0])
+		self.bot_profile.set_preference('network.proxy.ssl_port', int(selected_proxy[1]))
+		self.bot_profile.update_preferences()
+
+		self.bot_browser.quit()
+
+		self.bot_browser = webdriver.Firefox(firefox_profile=self.bot_profile, firefox_options=self.bot_browser_opts)
+
+		self.bot_browser.get(self.whatsip)
+		self.print_log_message(str(selected_proxy))
+
+	def change_profile_pic(self):
+
+		pass
+
+	def print_log_message(self, msg, success=True):
+
+		if(success):
+			print('(%s) %s[+]%s %s' % (
+				self.credentials[0],
+				colors['green'],
+				colors['endcol'],
+				msg
+			))
+
+		else:
+			print('(%s) %s[-]%s %s' % (
+				self.credentials[0],
+				colors['red'],
+				colors['endcol'],
+				msg
+			))
+
+	def run(self):
+
+		'''self.login()
+
+		for i in range(30):
+			self.send_notes('ilop709', 'Pull Up With Dat Strap')'''
+		#self.update_proxy()
+		self.print_log_message("Logging In")
+		self.login()
+
+		for i in range(30):
+			#self.send_notes('ilop709', 'Pull Up With Dat Strap')
+			self.create_forum(
+				'Calling All Coders',
+
+				'Hello everyone! my name is %s, I am an upcoming Computer Scientist and have been keeping my eyes on the DeviantArt community for some time now! I am currently trying to find someone who could help design an art piece for my computer science professer who has recently passed away from cancer as a tribute, I am wondering if any programmers in the community would be interested in creating a code poem to honor his impact on my life and many other young programmers.' % (self.credentials[0])
+			)
+
+	def die(self, message):
+
+		print(message)
+		exit(1)
+
+
+if __name__ == '__main__':
+
+	CipherBot = DeviantBot(['cipheradarlin', 'cipheradarlin@gmail.com', 'strongpassword'])
+	Elitra = DeviantBot(['elitraadarlin', 'elitraadarlin@gmail.com', 'strongpassword'])
+	#CipherBot.register()
+	CipherBot.start()
+	Elitra.start()
