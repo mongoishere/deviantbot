@@ -39,6 +39,7 @@ class DeviantBot(Thread):
 		self.deviant_note = "https://www.deviantart.com/notifications/notes/#1_0"
 		self.deviant_forum = "https://forum.deviantart.com/community/projects/"
 		self.whatsip = "http://whatismyip.host/"
+		self.imagepath = "profile_pics/"
 		dbpath = ('databases/%s_database.db' % (self.credentials[0]))
 		self.bot_database = sqlite_manager.SqliteDatabase(dbpath)
 		self.generate_bot_database()
@@ -130,6 +131,8 @@ class DeviantBot(Thread):
 		login_page_username = self.bot_browser.find_element_by_id('login_username')
 		login_page_password = self.bot_browser.find_element_by_id('login_password')
 
+		self.print_log_message("Logging In")
+
 		login_page_username.send_keys(self.credentials[0])
 		login_page_password.send_keys(self.credentials[2])
 
@@ -199,7 +202,6 @@ class DeviantBot(Thread):
 
 		self.print_log_message('Forum %s created Successfully!' % (subject))
 
-
 	def update_proxy(self):
 
 		# Here is where we update and change the bot's proxy
@@ -228,6 +230,11 @@ class DeviantBot(Thread):
 
 	def change_profile_pic(self):
 
+		image_list = []
+
+		for image in os.listdir(self.imagepath):
+			image_list.append(image)
+
 		self.bot_browser.get(self.deviant_profile)
 
 		wait(self.bot_browser, 15).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='catbar']")))
@@ -237,6 +244,9 @@ class DeviantBot(Thread):
 
 		
 		profile_page_ghost_link.click()
+
+		wait(self.bot_browser, 60).until(EC.visibility_of_element_located((By.XPATH, "//form[@class='file_upload']")))
+
 		profile_page_pic_upload_form = self.bot_browser.find_element_by_class_name('file_upload')
 		
 		profile_page_button_area = self.bot_browser.find_element_by_class_name('buttons')
@@ -244,20 +254,23 @@ class DeviantBot(Thread):
 		profile_page_pic_uploadbtn = profile_page_pic_upload_form.find_element_by_xpath(
 			"//input[@name='deck_file']")
 
-		profile_page_pic_uploadbtn.send_keys('/home/anonymous/Programming/Python/deviantbot2.0/loli.jpg')
+		selected_image = image_list[random.randint(0, (len(image_list) - 1))]
 
-		wait(self.bot_browser, 15).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='cropbox']")))
+		self.print_log_message('Image Selected: %s' % (selected_image))
+
+		profile_page_pic_uploadbtn.send_keys(('/home/anonymous/Programming/Python/deviantbot2.0/%s%s' % (self.imagepath, selected_image)))
+
+		wait(self.bot_browser, 60).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='cropbox']")))
 
 		profile_page_save_btn = profile_page_button_area.find_element_by_class_name(
 			"smbutton-green")
 
-		print(profile_page_save_btn.get_attribute('outerHTML'))
-
 		self.bot_browser.execute_script("arguments[0].click();", profile_page_save_btn)
 
-		self.print_log_message("Button alledgedly clicked")
-		
+		self.print_log_message("Profile picture has been updated")
 
+		time.sleep(4.5)
+		
 	def print_log_message(self, msg, success=True):
 
 		if(success):
@@ -278,14 +291,12 @@ class DeviantBot(Thread):
 
 	def run(self):
 
-		'''self.login()
+		#self.update_proxy()
+		self.login()
 
 		for i in range(30):
-			self.send_notes('ilop709', 'Pull Up With Dat Strap')'''
-		#self.update_proxy()
-		self.print_log_message("Logging In")
-		self.login()
-		self.change_profile_pic()
+
+			self.change_profile_pic()
 
 		'''for i in range(30):
 			#self.send_notes('ilop709', 'Pull Up With Dat Strap')
