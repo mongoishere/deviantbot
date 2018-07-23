@@ -1,8 +1,9 @@
-import random, time, os, sqlite_manager, datetime
+import random, time, os, sqlite_manager, datetime, pdb
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait as wait
 from selenium.webdriver import FirefoxOptions
 from selenium.webdriver.common.proxy import Proxy, ProxyType
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import BeautifulSoup
@@ -33,6 +34,7 @@ class DeviantBot(Thread):
 		self.print_log_message('Starting Bot')
 		self.deviant_main = "https://www.deviantart.com/"
 		self.deviant_join = "https://www.deviantart.com/join/"
+		self.deviant_profile = ("https://www.deviantart.com/%s" % (self.credentials[0]))
 		self.deviant_login = "https://www.deviantart.com/users/login"
 		self.deviant_note = "https://www.deviantart.com/notifications/notes/#1_0"
 		self.deviant_forum = "https://forum.deviantart.com/community/projects/"
@@ -226,7 +228,35 @@ class DeviantBot(Thread):
 
 	def change_profile_pic(self):
 
-		pass
+		self.bot_browser.get(self.deviant_profile)
+
+		wait(self.bot_browser, 15).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='catbar']")))
+
+		profile_page_pic_area = self.bot_browser.find_element_by_class_name('authorative-avatar')
+		profile_page_ghost_link = profile_page_pic_area.find_element_by_class_name('ghost-edit')
+
+		
+		profile_page_ghost_link.click()
+		profile_page_pic_upload_form = self.bot_browser.find_element_by_class_name('file_upload')
+		
+		profile_page_button_area = self.bot_browser.find_element_by_class_name('buttons')
+
+		profile_page_pic_uploadbtn = profile_page_pic_upload_form.find_element_by_xpath(
+			"//input[@name='deck_file']")
+
+		profile_page_pic_uploadbtn.send_keys('/home/anonymous/Programming/Python/deviantbot2.0/loli.jpg')
+
+		wait(self.bot_browser, 15).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='cropbox']")))
+
+		profile_page_save_btn = profile_page_button_area.find_element_by_class_name(
+			"smbutton-green")
+
+		print(profile_page_save_btn.get_attribute('outerHTML'))
+
+		self.bot_browser.execute_script("arguments[0].click();", profile_page_save_btn)
+
+		self.print_log_message("Button alledgedly clicked")
+		
 
 	def print_log_message(self, msg, success=True):
 
@@ -255,14 +285,15 @@ class DeviantBot(Thread):
 		#self.update_proxy()
 		self.print_log_message("Logging In")
 		self.login()
+		self.change_profile_pic()
 
-		for i in range(30):
+		'''for i in range(30):
 			#self.send_notes('ilop709', 'Pull Up With Dat Strap')
 			self.create_forum(
 				'Calling All Coders',
 
 				'Hello everyone! my name is %s, I am an upcoming Computer Scientist and have been keeping my eyes on the DeviantArt community for some time now! I am currently trying to find someone who could help design an art piece for my computer science professer who has recently passed away from cancer as a tribute, I am wondering if any programmers in the community would be interested in creating a code poem to honor his impact on my life and many other young programmers.' % (self.credentials[0])
-			)
+			)'''
 
 	def die(self, message):
 
