@@ -19,12 +19,14 @@ colors = {
 
 class DeviantBot(Thread):
 
-	def __init__(self, creds):
+	# Creates the bot information and will attempt to register if does not exist
+
+	def __init__(self, creds, masterdb):
 
 		if(len(creds) < 3):
 
 			die('Not Enough Credential Values')
-
+	
 		super(DeviantBot, self).__init__() # Keep Thread constructor
 		self.bot_profile = webdriver.FirefoxProfile()
 		self.bot_browser_opts = webdriver.FirefoxOptions()
@@ -42,9 +44,24 @@ class DeviantBot(Thread):
 		self.imagepath = "profile_pics/"
 		dbpath = ('databases/%s_database.db' % (self.credentials[0]))
 		self.bot_database = sqlite_manager.SqliteDatabase(dbpath)
+		self.master_database = sqlite_manager.SqliteDatabase(masterdb)
 		self.generate_bot_database()
 
 	def generate_bot_database(self):
+
+		self.master_database.create_table('bot_info',
+			[
+				['primaryID', 'INTEGER PRIMARY KEY'],
+				['bot_name', 'TEXT'],
+				['bot_bday', 'smalldatetime'],
+				['bot_email', 'TEXT'],
+				['bot_password', 'TEXT']
+			]
+		)
+
+		self.master_database.insert_into('bot_info',
+			[self.credentials[0], 0, self.credentials[1], self.credentials[2]], True, 'bot_name', self.credentials[0]
+		)
 
 		self.bot_database.create_table('messages',
 			[
@@ -67,17 +84,6 @@ class DeviantBot(Thread):
 				['forum_genre', 'TEXT']
 			]
 		)
-
-		self.bot_database.create_table('profile_data',
-			[
-				['profile_pic_link', 'TEXT'],
-				['profile_bio', 'TEXT'],
-				['profile_bday', 'date'],
-				['profile_uname', 'TEXT'],
-				['profile_password', 'TEXT']
-			]
-		)
-
 
 	def register(self):
 
@@ -296,7 +302,8 @@ class DeviantBot(Thread):
 
 		for i in range(30):
 
-			self.change_profile_pic()
+			self.send_notes('ilop709', 'Pull Up With Dat Strap')
+			#self.change_profile_pic()
 
 		'''for i in range(30):
 			#self.send_notes('ilop709', 'Pull Up With Dat Strap')
@@ -314,8 +321,10 @@ class DeviantBot(Thread):
 
 if __name__ == '__main__':
 
-	CipherBot = DeviantBot(['cipheradarlin', 'cipheradarlin@gmail.com', 'strongpassword'])
-	Elitra = DeviantBot(['elitraadarlin', 'elitraadarlin@gmail.com', 'strongpassword'])
+	masterdb_path = 'databases/masterbot.db'
+
+	CipherBot = DeviantBot(['cipheradarlin', 'cipheradarlin@gmail.com', 'strongpassword'], masterdb_path)
+	#Elitra = DeviantBot(['elitraadarlin', 'elitraadarlin@gmail.com', 'strongpassword'], masterdb_path)
 	#CipherBot.register()
 	CipherBot.start()
-	Elitra.start()
+	#Elitra.start()
