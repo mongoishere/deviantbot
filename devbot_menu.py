@@ -40,7 +40,6 @@ class DevbotMenu(object):
         for index, key in enumerate((self.function_list.keys())):
             
             if isinstance(self.function_list[key], list):
-                print('This value is a list')
 
                 if(func_opt == (index+1)):
 
@@ -53,5 +52,7 @@ if __name__ == '__main__':
 
     main_menu = DevbotMenu()
     main_menu.add_function('print_something', print, ['Dakurochi %s' % ('rocks')])
+    main_menu.add_function('print_something_second', print, ['Something funny'])
     main_menu.select_function(1)
+    main_menu.select_function(2)
     main_menu.generate_menu()
