@@ -19,12 +19,14 @@ colors = {
 
 class DeviantBot(Thread):
 
-	def __init__(self, creds):
+	# Creates the bot information and will attempt to register if does not exist
+
+	def __init__(self, creds, masterdb):
 
 		if(len(creds) < 3):
 
 			die('Not Enough Credential Values')
-
+	
 		super(DeviantBot, self).__init__() # Keep Thread constructor
 		self.bot_profile = webdriver.FirefoxProfile()
 		self.bot_browser_opts = webdriver.FirefoxOptions()
@@ -42,9 +44,32 @@ class DeviantBot(Thread):
 		self.imagepath = "profile_pics/"
 		dbpath = ('databases/%s_database.db' % (self.credentials[0]))
 		self.bot_database = sqlite_manager.SqliteDatabase(dbpath)
+		self.master_database = sqlite_manager.SqliteDatabase(masterdb)
 		self.generate_bot_database()
 
 	def generate_bot_database(self):
+
+		self.master_database.create_table('bot_info',
+			[
+				['primaryID', 'INTEGER PRIMARY KEY'],
+				['bot_name', 'TEXT'],
+				['bot_created', 'smalldatetime'],
+				['bot_email', 'TEXT'],
+				['bot_password', 'TEXT']
+			]
+		)
+
+		# Insert into masterdb if the bot does not exist
+
+		self.master_database.insert_into('bot_info',
+			[self.credentials[0],
+			datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+			self.credentials[1],
+			self.credentials[2]],
+			True,
+			'bot_name',
+			self.credentials[0]
+		)
 
 		self.bot_database.create_table('messages',
 			[
@@ -67,17 +92,6 @@ class DeviantBot(Thread):
 				['forum_genre', 'TEXT']
 			]
 		)
-
-		self.bot_database.create_table('profile_data',
-			[
-				['profile_pic_link', 'TEXT'],
-				['profile_bio', 'TEXT'],
-				['profile_bday', 'date'],
-				['profile_uname', 'TEXT'],
-				['profile_password', 'TEXT']
-			]
-		)
-
 
 	def register(self):
 
@@ -161,11 +175,9 @@ class DeviantBot(Thread):
 		for input_area in notes_page_recipient:
 
 			try:
-
 				input_area.send_keys(to_name)
 
 			except:
-
 				pass
 
 		notes_page_subject.send_keys(to_name)
@@ -296,15 +308,8 @@ class DeviantBot(Thread):
 
 		for i in range(30):
 
+			self.send_notes('ilop709', 'Pull Up With Dat Strap')
 			self.change_profile_pic()
-
-		'''for i in range(30):
-			#self.send_notes('ilop709', 'Pull Up With Dat Strap')
-			self.create_forum(
-				'Calling All Coders',
-
-				'Hello everyone! my name is %s, I am an upcoming Computer Scientist and have been keeping my eyes on the DeviantArt community for some time now! I am currently trying to find someone who could help design an art piece for my computer science professer who has recently passed away from cancer as a tribute, I am wondering if any programmers in the community would be interested in creating a code poem to honor his impact on my life and many other young programmers.' % (self.credentials[0])
-			)'''
 
 	def die(self, message):
 
@@ -314,8 +319,10 @@ class DeviantBot(Thread):
 
 if __name__ == '__main__':
 
-	CipherBot = DeviantBot(['cipheradarlin', 'cipheradarlin@gmail.com', 'strongpassword'])
-	Elitra = DeviantBot(['elitraadarlin', 'elitraadarlin@gmail.com', 'strongpassword'])
+	masterdb_path = 'databases/masterbot.db'
+
+	CipherBot = DeviantBot(['cipheradarlin', 'cipheradarlin@gmail.com', 'strongpassword'], masterdb_path)
+	Elitra = DeviantBot(['elitraadarlin', 'elitraadarlin@gmail.com', 'strongpassword'], masterdb_path)
 	#CipherBot.register()
 	CipherBot.start()
 	Elitra.start()

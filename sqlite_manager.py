@@ -29,7 +29,7 @@ class SqliteDatabase(object):
 		self.database.commit()
 		self.database.close()
 
-	def insert_into(self, table_name, table_args):
+	def insert_into(self, table_name, table_args, not_exists=False, col_to_check=None, value_to_check=None):
 
 		self.database = sqlite3.connect(self.dbname)
 		self.dbcursor = self.database.cursor()
@@ -40,7 +40,29 @@ class SqliteDatabase(object):
 
 		if(len(table_args) == len(col_names)):
 
-			self.insert_into_syntax = ("INSERT INTO %s(" % (table_name))
+			if(not_exists and col_to_check and value_to_check):
+
+				pass
+
+				if isinstance(col_to_check, str):
+
+					search_syntax = "SELECT * FROM %s WHERE %s='%s'" % (table_name, col_to_check, value_to_check)
+					result = self.dbcursor.execute(search_syntax)	
+					fetched_one = result.fetchone()
+
+					if(fetched_one):
+						return None
+
+					else:
+						self.insert_into_syntax = ("INSERT INTO %s(" % (table_name))
+
+				else:
+
+					print('Columns are lists')
+
+			else:
+				self.insert_into_syntax = ("INSERT INTO %s(" % (table_name))
+
 			values_string = "("
 
 			for col in col_names:
@@ -61,5 +83,4 @@ class SqliteDatabase(object):
 			self.database.close()
 
 		else:
-
-			print('Not enough arguments')
+			raise Exception("Not enough arguments")
