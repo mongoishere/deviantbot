@@ -53,12 +53,17 @@ class DeviantBot(Thread):
 			[
 				['primaryID', 'INTEGER PRIMARY KEY'],
 				['bot_name', 'TEXT'],
+<<<<<<< HEAD
 				['bot_created', 'smalldatetime'],
+=======
+				['bot_bday', 'smalldatetime'],
+>>>>>>> e3fccf8a7e4a37dd381dd2c1c6b269fbcc6d0394
 				['bot_email', 'TEXT'],
 				['bot_password', 'TEXT']
 			]
 		)
 
+<<<<<<< HEAD
 		# Insert into masterdb if the bot does not exist
 
 		self.master_database.insert_into('bot_info',
@@ -69,6 +74,10 @@ class DeviantBot(Thread):
 			True,
 			'bot_name',
 			self.credentials[0]
+=======
+		self.master_database.insert_into('bot_info',
+			[self.credentials[0], 0, self.credentials[1], self.credentials[2]], True, 'bot_name', self.credentials[0]
+>>>>>>> e3fccf8a7e4a37dd381dd2c1c6b269fbcc6d0394
 		)
 
 		self.bot_database.create_table('messages',
@@ -309,7 +318,11 @@ class DeviantBot(Thread):
 		for i in range(30):
 
 			self.send_notes('ilop709', 'Pull Up With Dat Strap')
+<<<<<<< HEAD
 			self.change_profile_pic()
+=======
+			#self.change_profile_pic()
+>>>>>>> e3fccf8a7e4a37dd381dd2c1c6b269fbcc6d0394
 
 	def die(self, message):
 
@@ -322,7 +335,11 @@ if __name__ == '__main__':
 	masterdb_path = 'databases/masterbot.db'
 
 	CipherBot = DeviantBot(['cipheradarlin', 'cipheradarlin@gmail.com', 'strongpassword'], masterdb_path)
+<<<<<<< HEAD
 	Elitra = DeviantBot(['elitraadarlin', 'elitraadarlin@gmail.com', 'strongpassword'], masterdb_path)
+=======
+	#Elitra = DeviantBot(['elitraadarlin', 'elitraadarlin@gmail.com', 'strongpassword'], masterdb_path)
+>>>>>>> e3fccf8a7e4a37dd381dd2c1c6b269fbcc6d0394
 	#CipherBot.register()
 	CipherBot.start()
-	Elitra.start()
+	#Elitra.start()

@@ -7127,6 +7127,7 @@ ATTENTION: default value of option force_s3tc_enable overridden by environment.
 (firefox:12333): GLib-GObject-CRITICAL **: g_object_ref: assertion 'object->ref_count > 0' failed
 
 (firefox:12333): GLib-GObject-CRITICAL **: g_object_unref: assertion 'object->ref_count > 0' failed
+<<<<<<< HEAD
 1532785201594	geckodriver	INFO	geckodriver 0.21.0
 1532785201639	geckodriver	INFO	Listening on 127.0.0.1:59639
 1532785203064	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.ftXyQPekgoPg"
@@ -7145,3 +7146,5 @@ ATTENTION: default value of option force_s3tc_enable overridden by environment.
 [GFX1-]: Receive IPC close with reason=AbnormalShutdown
 [Child 14604, Chrome_ChildThread] WARNING: pipe error (35): Connection reset by peer: file /build/firefox/src/mozilla-unified/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
 [Child 14642, Chrome_ChildThread] WARNING: pipe error (3): Connection reset by peer: file /build/firefox/src/mozilla-unified/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+=======
+>>>>>>> e3fccf8a7e4a37dd381dd2c1c6b269fbcc6d0394
