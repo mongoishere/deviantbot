@@ -43,10 +43,13 @@ class DevbotMenu(object):
 
                 if(func_opt == (index+1)):
                     
+
                     self.function_list[key][0](*self.function_list[key][1])
             else:
-                print('This is not a list')
-                self.function_list[key]()
+
+                if(func_opt == (index+1)):
+
+                    self.function_list[key]()
 
     def create_bot_menu(self):
 
@@ -65,10 +68,30 @@ class DevbotMenu(object):
             user_responses.append(input("%s => " % (prompt)))
 
         devbot_functions.DevbotFunctions.create_new_bot(None, (*user_responses), masterdb)
+
+    def spam_bot_menu(self):
+
+        masterdb = 'databases/masterbot.db'
+
+        user_responses = []
+
+        input_prompts = [
+            "Enter Desired Bot",
+            "Enter Target Username",
+            "Enter Note Content",
+            "Enter Spam Count"
+        ]
+
+        for prompt in input_prompts:
+
+            user_responses.append(input("%s => " % (prompt)))
+        
+        devbot_functions.DevbotFunctions.spam_notes(None, (*user_responses), masterdb)
         
 
 if __name__ == '__main__':
 
     main_menu = DevbotMenu()
     main_menu.add_function('Create a new bot', main_menu.create_bot_menu)
+    main_menu.add_function('Spam someone', main_menu.spam_bot_menu)
     main_menu.generate_menu()

@@ -85,6 +85,13 @@ class SqliteDatabase(object):
 		else:
 			raise Exception("Not enough arguments")
 
-	def fetch_row(self, by_col):
+	def fetch_row(self, select, table_name, where, equals):
 
-		self.database.connect()
+		self.database = sqlite3.connect(self.dbname)
+		self.dbcursor = self.database.cursor()
+
+		fetch_syntax = ("SELECT %s FROM %s WHERE %s=?" % (select, table_name, where))
+
+		result = self.dbcursor.execute(fetch_syntax, [equals])
+
+		return(result.fetchone()[0])
