@@ -54,7 +54,6 @@ class DeviantBot(Thread):
 				['primaryID', 'INTEGER PRIMARY KEY'],
 				['bot_name', 'TEXT'],
 				['bot_created', 'smalldatetime'],
-				['bot_bday', 'smalldatetime'],
 				['bot_email', 'TEXT'],
 				['bot_password', 'TEXT']
 			]
@@ -63,18 +62,12 @@ class DeviantBot(Thread):
 		# Insert into masterdb if the bot does not exist
 
 		self.master_database.insert_into('bot_info',
-			[self.credentials[0],
-			datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-			self.credentials[1],
-			self.credentials[2]],
-			True,
-			'bot_name',
-			self.credentials[0]
+			[self.credentials[0], datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.credentials[1], self.credentials[2]], True, 'bot_name', self.credentials[0]
 		)
 
-		self.master_database.insert_into('bot_info',
-			[self.credentials[0], 0, self.credentials[1], self.credentials[2]], True, 'bot_name', self.credentials[0]
-		)
+		#self.master_database.insert_into('bot_info',
+		#	[self.credentials[0], 0, self.credentials[1], self.credentials[2]], True, 'bot_name', self.credentials[0]
+		#)
 
 		self.bot_database.create_table('messages',
 			[
@@ -100,6 +93,7 @@ class DeviantBot(Thread):
 
 	def register(self):
 
+		self.print_log_message("Navigating to %s" % (self.deviant_join))
 		self.bot_browser.get(self.deviant_join)
 		register_page_text = self.bot_browser.page_source
 		register_page_soup = BeautifulSoup(register_page_text, 'html.parser')
@@ -116,8 +110,9 @@ class DeviantBot(Thread):
 		register_page_agree = self.bot_browser.find_element_by_id('agreeterms')
 
 		determine_option = lambda opt, ind, num: opt.click() if ind == num else None
-		choose_option = lambda elem, num: [determine_option(optaion, ind, num) for ind, option in enumerate(elem('option'))]
+		choose_option = lambda elem, num: [determine_option(option, ind, num) for ind, option in enumerate(elem('option'))]
 
+		self.print_log_message("Filling out register form...")
 		register_page_cusername.send_keys(self.credentials[0])
 		register_page_email1.send_keys(self.credentials[1])
 		register_page_email2.send_keys(self.credentials[1])
@@ -125,13 +120,13 @@ class DeviantBot(Thread):
 
 		choose_option(register_page_dobmonth.find_elements_by_tag_name, random.randint(0, 12))
 		choose_option(register_page_dobday.find_elements_by_tag_name, random.randint(0, 28))
-		choose_option(register_page_dobyear.find_elements_by_tag_name, random.randint(0, 100))
-		choose_option(register_page_gender.find_elements_by_tag_name, random.randint(0, 2))
+		choose_option(register_page_dobyear.find_elements_by_tag_name, random.randint(20, 100))
+		choose_option(register_page_gender.find_elements_by_tag_name, random.randint(1, 2))
 
 		register_page_agree.click()
-
 		# Moment of truth
 		register_page_form.submit()
+		self.print_log_message("Successfully registered bot!")
 
 	def login(self):
 

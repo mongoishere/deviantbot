@@ -84,3 +84,7 @@ class SqliteDatabase(object):
 
 		else:
 			raise Exception("Not enough arguments")
+
+	def fetch_row(self, by_col):
+
+		self.database.connect()
