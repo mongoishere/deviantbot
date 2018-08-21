@@ -85,6 +85,17 @@ class SqliteDatabase(object):
 		else:
 			raise Exception("Not enough arguments")
 
+	def fetch_all_rows(self, table_name):
+
+		self.database = sqlite3.connect(self.dbname)
+		self.dbcursor = self.database.cursor()
+		
+		fetch_all_syntax = ("SELECT * FROM %s" % (table_name))
+
+		result = self.dbcursor.execute(fetch_all_syntax)
+
+		return(result.fetchall())
+
 	def fetch_row(self, select, table_name, where, equals):
 
 		self.database = sqlite3.connect(self.dbname)

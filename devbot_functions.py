@@ -24,7 +24,7 @@ class DevbotFunctions(object):
         for note in range(int(spam_num)):
 
             deviantbot.print_log_message('Sending note [%s of %s]' % ((note+1), spam_num))
-            deviantbot.send_notes(target, note_cont)
+            deviantbot.send_notes(target, note_cont, 1)
 
 
 if __name__ == '__main__':

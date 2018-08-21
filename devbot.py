@@ -154,7 +154,7 @@ class DeviantBot(Thread):
 
 		wait(self.bot_browser, 15).until_not(EC.title_is(login_page_title))
 
-	def send_notes(self, to_name, msg):
+	def send_notes(self, to_name, msg, mode=0):
 
 		self.bot_browser.get(self.deviant_note)
 
@@ -186,7 +186,7 @@ class DeviantBot(Thread):
 
 		self.print_log_message('Message Sent Successfully to %s' % (to_name))
 
-		self.bot_database.insert_into('messages', [to_name, self.credentials[0], datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), msg, 0])
+		self.bot_database.insert_into('messages', [to_name, self.credentials[0], datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), msg, mode])
 
 	def create_forum(self, subject, content):
 
